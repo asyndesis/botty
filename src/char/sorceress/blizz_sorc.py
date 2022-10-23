@@ -67,39 +67,28 @@ class BlizzSorc(Sorceress):
         return True
 
     def kill_eldritch(self) -> bool:
+        eld_pos_abs = convert_screen_to_abs(Config().path["eldritch_end"][0])
         #move up
         pos_m = convert_abs_to_monitor((0, -175))
         self.pre_move()
         self.move(pos_m, force_move=True)
-        self._blizzard((-50, -50), spray=10)
-        self._cast_static()
-        wait(0.75)
+        self._blizzard((-50, -100), spray=10)
         #move down
-        pos_m = convert_abs_to_monitor((0, 85))
+        pos_m = convert_abs_to_monitor((0, 95))
         self.pre_move()
         self.move(pos_m, force_move=True)
-        self._blizzard((-170, -350), spray=10)
-        self._cast_static()
+        for _ in range(int(Config().char["atk_len_eldritch"])):
+            self._blizzard((-50, -350), spray=10)
+            self._ice_blast((-50, -350), spray=40)
         #move down
         wait(0.75)
         pos_m = convert_abs_to_monitor((0, 75))
         self.pre_move()
         self.move(pos_m, force_move=True)
-        self._blizzard((100, -300), spray=10)
-        self._cast_static()
+        for _ in range(int(Config().char["atk_len_eldritch"])):
+            self._blizzard((60, -200), spray=10)
+            self._ice_blast((60, -200), spray=30)
         wait(0.75)
-        pos_m = convert_abs_to_monitor((0, 55))
-        self.pre_move()
-        self.move(pos_m, force_move=True)
-        self._blizzard((-50, -130), spray=10)
-        self._cast_static()
-        wait(3.0)
-        pos_m = convert_abs_to_monitor((0, -100))
-        self.pre_move()
-        self.move(pos_m, force_move=True)
-        self._blizzard((-50, -130), spray=10)
-        self._cast_static()
-        wait(1.75)
         self._pather.traverse_nodes_fixed("eldritch_end", self)
         return True
 

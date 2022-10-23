@@ -137,6 +137,10 @@ class PickIt:
         pickit_phase_start = time.time()
 
         items, img = self._locate_items()
+        if len(items) == 0:
+            Logger.info(f"Fucked up item count. Try again.")
+            wait(0.25, 0.35)
+            items, img = self._locate_items()
         counter = 1
         _uuid = uuid.uuid4()
         self._log_data(items, img, counter, _uuid)

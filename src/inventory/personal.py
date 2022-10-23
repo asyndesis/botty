@@ -22,6 +22,7 @@ from screen import grab, convert_screen_to_monitor
 from item import consumables
 from bnip.NTIPAliasStat import NTIPAliasStat as NTIP_STATS
 from bnip.actions import should_id, should_keep
+from d2r_image.processing_helpers import crop_item_tooltip
 
 inv_gold_full = False
 messenger = Messenger()
@@ -209,6 +210,7 @@ def inspect_items(inp_img: np.ndarray = None, close_window: bool = True, game_st
         if common.slot_has_item(slot_img):
             slots.append([slot_pos, row, column])
     boxes = []
+    quality = 'ticklish'
     # iterate over slots with items
     item_rois = []
     already_detected_slots = set()
@@ -227,6 +229,7 @@ def inspect_items(inp_img: np.ndarray = None, close_window: bool = True, game_st
         # get the item description box
         item_properties, item_box = (None, None)
         try: # ! This happens because we don't know the items slot count. To get more context remove the try and catch and see what happens
+            _, quality = d2r_image.crop_item_tooltip(hovered_item)
             item_properties, item_box = d2r_image.get_hovered_item(hovered_item)
         except Exception as e:
             Logger.error(f"personal.inspect_items(): Failed to get item properties for slot {slot}")
@@ -299,6 +302,7 @@ def inspect_items(inp_img: np.ndarray = None, close_window: bool = True, game_st
                         item_properties, item_box = d2r_image.get_hovered_item(hovered_item)
 
                     if item_box is not None:
+                       
                         log_item(item_box, item_properties)
                         # decide whether to keep item
                         box.keep, expression = should_keep(item_properties.as_dict())
@@ -337,13 +341,29 @@ def inspect_items(inp_img: np.ndarray = None, close_window: bool = True, game_st
                     else:
                         failed = True
                 except AttributeError as e:
-                    failed = True
-                    # * Drop item.
-                    Logger.info(f"Dropping {item_name}. Failed with AttributeError {e}")
-                    transfer_items([box], action = "drop")
-
-
-        if failed:
+                    Logger.info(f"Failed with AttributeError {e}")
+                    box.keep = True
+                    box.sell = False
+            else:
+                # if there was not an ocr result, we just try to hang on to uniques and set items. the rest we sell
+                if quality == 'unique' or quality == 'set':
+                    Logger.info(f"Unknown item is {quality}. Attempting to keep.")
+                    box.keep = True
+                    box.sell = False
+                    boxes.append(box)
+                else:
+                    box = BoxInfo(
+                        img = item_box.img,
+                        pos = (x_m, y_m),
+                        column = slot[2],
+                        row = slot[1],
+                        sell = True,
+                        need_id = False,
+                        keep = False
+                    )
+                    transfer_items([box], action = "sell")
+                    continue
+        if failed:  
             log_item_fail(hovered_item, slot)
 
     if close_window:

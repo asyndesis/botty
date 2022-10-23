@@ -94,18 +94,18 @@ def crop_item_tooltip(image: np.ndarray, model: str = "hover-eng_inconsolata_inv
     for cntr in contours:
         x, y, w, h = cv2.boundingRect(cntr)
         cropped_item = image[y:y+h, x:x+w]
-
+       
         if not (expected_height := BOX_EXPECTED_HEIGHT_RANGE[0] < h < BOX_EXPECTED_HEIGHT_RANGE[1]):
             continue
         if not (expected_width := BOX_EXPECTED_WIDTH_RANGE[0] < w < BOX_EXPECTED_WIDTH_RANGE[1]):
             continue
-
+        
         avg = np.average(cv2.cvtColor(cropped_item, cv2.COLOR_BGR2GRAY))
         if not (mostly_dark := 0 < avg < 35):
             continue
         if not (contains_black := np.min(cropped_item) < 14):
             continue
-
+ 
         contains_white = np.max(cropped_item) > 250
         contains_orange = False
         if not contains_white:
@@ -114,7 +114,6 @@ def crop_item_tooltip(image: np.ndarray, model: str = "hover-eng_inconsolata_inv
             contains_orange = np.min(orange_mask) > 0
         if not (contains_white or contains_orange):
             continue
-
         # check to see if contour overlaps right inventory
         right_inv = Config().ui_roi["right_inventory"]
         overlaps_inventory = not (
@@ -123,9 +122,9 @@ def crop_item_tooltip(image: np.ndarray, model: str = "hover-eng_inconsolata_inv
             left_inv = Config().ui_roi["left_inventory"]
             overlaps_inventory |= not (
                 x+w < left_inv[0] or left_inv[0]+left_inv[2] < x or y+h+60 < left_inv[1] or left_inv[1]+left_inv[3] < y)
-        if not overlaps_inventory:
-            continue
-
+        # if not overlaps_inventory:
+        #     continue
+ 
         #print(f"x: {x}, y: {y}, w: {w}, h: {h}")
         footer_y = (y + h) if (y + h) < 700 else 700
         footer_h = 720 - footer_y

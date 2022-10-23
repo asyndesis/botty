@@ -8,6 +8,7 @@ from d2r_image import ocr
 
 def get_experience():
     # mouseover exp bar
+    return 0,0
     pos=(Config().ui_pos["xp_bar_x"], Config().ui_pos["xp_bar_y"])
     x_m, y_m =  convert_screen_to_monitor(screen_coord = pos)
     mouse.move(x_m, y_m, randomize = (8,1))
